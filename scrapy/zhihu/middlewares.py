@@ -4,12 +4,13 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 import random
+import time
+
 import requests
+from zhihu.util.proxy_pool import proxy_pool_url
 
 from scrapy import signals
 from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
-
-from zhihu.settings import USER_AGENT_POOL
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
@@ -127,5 +128,13 @@ class RandomUserAgent(UserAgentMiddleware):
 
 class RandomProxy:
     def process_request(self, request, spider):
-        proxy = requests.get("http://127.0.0.1:5010/get/")
-        request.meta['proxys'] = {"http": "http://{}".format(proxy)}
+        if proxy_pool_url:
+            time.sleep(3)
+            print("\n正在获取代理地址")
+            proxy = requests.get(proxy_pool_url).json()['data']
+            ip = proxy[0]['ip']
+            port = proxy[0]['port']
+            request.meta['proxy'] = "http://{}:{}".format(ip, port)
+            print("代理地址为：{}\n".format(request.meta['proxy']))
+        else:
+            print('爬虫系统没有开启IP代理，请注意爬取速度！')

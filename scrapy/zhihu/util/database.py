@@ -11,7 +11,7 @@ MYSQL_USER = 'root'
 MYSQL_PASS = '20190930'
 MYSQL_DATABASE = 'zhi_hu_db'
 
-CONNECTION = pymysql.connect(
+connection = pymysql.connect(
     host=MYSQL_HOST,
     port=MYSQL_PORT,
     user=MYSQL_USER,

@@ -4,11 +4,12 @@ from datetime import datetime
 import requests
 import random
 
-from zhihu.settings import USER_AGENT_POOL
 from scrapy.spiders import CrawlSpider, Rule, Request
 from scrapy.linkextractors import LinkExtractor
 
 from zhihu.items import Question
+from zhihu.util.cookies import default_cookies
+from zhihu.util.user_agent_pool import user_agent_pool
 
 
 class QuestionSpider(CrawlSpider, ABC):
@@ -28,8 +29,14 @@ class QuestionSpider(CrawlSpider, ABC):
 
     def start_requests(self):
         for url in self.start_urls:
-            KLBRSID = '81978cf28cf03c58e07f705c156aa833|1639455371|1639455364'
-            yield Request(url, cookies={'KLBRSID': KLBRSID})
+            cookie_value = default_cookies
+            yield Request(url=url,
+                          cookies={'KLBRSID': cookie_value},
+                          meta={
+                              'dont_redirect': True,
+                              'handle_httpstatus_list': [301, 302]
+                          }
+                          )
 
     def parse_item(self, response):
         question_id = self._parse_question_id(response)
@@ -48,6 +55,7 @@ class QuestionSpider(CrawlSpider, ABC):
             regex = r'KLBRSID=(.*);'
             match = re.findall(regex, response.headers['set-cookie'].decode('utf-8'))
             question['cookies'] = match[0]
+            question['proxy'] = response.request.meta['proxy']
             question_data = self._parse_related(response)
             temp = []
             for data in question_data:
@@ -57,15 +65,21 @@ class QuestionSpider(CrawlSpider, ABC):
             yield question
 
         url = 'https://www.zhihu.com/api/v4/questions/{}/similar-questions?limit=5'.format(question_id)
-        regex = r'KLBRSID=(.*);'
-        match = re.findall(regex, response.headers['set-cookie'].decode('utf-8'))
-        res = requests.get(url=url, cookies={'KLBRSID': match[0]},
-                           headers={'User-Agent': random.choice(USER_AGENT_POOL)})
+        cookie_value = self._get_cookie_value(response)
+        res = requests.get(url=url, cookies={'KLBRSID': cookie_value},
+                           headers={'User-Agent': random.choice(user_agent_pool)})
         for data in res.json()['data']:
             question_id = data['id']
             url = 'https://www.zhihu.com/question/' + str(question_id)
-            yield Request(url=url, cookies={'KLBRSID': match[0]},
-                          headers={'User-Agent': random.choice(USER_AGENT_POOL)}, callback=self.parse_item)
+            yield Request(url=url,
+                          cookies={'KLBRSID': cookie_value},
+                          headers={'User-Agent': random.choice(user_agent_pool)},
+                          callback=self.parse_item,
+                          meta={
+                              'dont_redirect': True,
+                              'handle_httpstatus_list': [301, 302]
+                          }
+                          )
 
     @staticmethod
     def _set_cookies(request, response):
@@ -120,7 +134,8 @@ class QuestionSpider(CrawlSpider, ABC):
         regex = '//h4[@class="List-headerText"]/span/text()'
         match = response.xpath(regex).get()
         if match:
-            return match
+            temp = int(match.replace(',', ''))
+            return temp
         return 0
 
     @staticmethod
@@ -149,9 +164,14 @@ class QuestionSpider(CrawlSpider, ABC):
 
     def _parse_related(self, response):
         question_id = self._parse_question_id(response)
+        cookie_value = self._get_cookie_value(response)
         url = 'https://www.zhihu.com/api/v4/questions/{}/similar-questions?limit=5'.format(question_id)
+        res = requests.get(url=url, cookies={'KLBRSID': cookie_value},
+                           headers={'User-Agent': random.choice(user_agent_pool)})
+        return res.json()['data']
+
+    @staticmethod
+    def _get_cookie_value(response):
         regex = r'KLBRSID=(.*);'
         match = re.findall(regex, response.headers['set-cookie'].decode('utf-8'))
-        res = requests.get(url=url, cookies={'KLBRSID': match[0]},
-                           headers={'User-Agent': random.choice(USER_AGENT_POOL)})
-        return res.json()['data']
+        return match[0]

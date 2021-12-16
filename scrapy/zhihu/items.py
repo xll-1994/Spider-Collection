@@ -19,6 +19,7 @@ class Question(Item):
     tag = Field()
     related = Field()
     cookies = Field()
+    proxy = Field()
     insert_time = Field()
 
 

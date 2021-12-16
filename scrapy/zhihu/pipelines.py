@@ -5,10 +5,10 @@
 
 import logging
 
-from zhihu.database import CONNECTION
+from zhihu.util.database import connection
 from zhihu.items import Question
 
-cursor = CONNECTION.cursor()
+cursor = connection.cursor()
 
 
 class ZhiHuPipeline:
@@ -38,4 +38,4 @@ class ZhiHuPipeline:
         temp = ','.join(['%s'] * len(keys))
         sql = 'INSERT INTO question (%s) VALUES (%s)' % (fields, temp)
         cursor.execute(sql, values)
-        return CONNECTION.commit()
+        return connection.commit()
