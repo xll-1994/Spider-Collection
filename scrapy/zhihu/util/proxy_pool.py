@@ -9,7 +9,7 @@
 use_proxy = 1
 
 # 配置代理的 host 和 port 信息
-host = '81.70.54.179'
+host = '127.0.0.1'
 port = 5010
 
 if use_proxy == 1:
