@@ -28,13 +28,13 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 2
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 CONCURRENT_REQUESTS_PER_IP = 1
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = True
+COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED = False
@@ -55,8 +55,9 @@ COOKIES_ENABLED = True
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     #    'zhihu.middlewares.ZhihuDownloaderMiddleware': 543,
-    'zhihu.middlewares.RandomProxy': 543,
-    'zhihu.middlewares.RandomUserAgent': 543
+    'zhihu.middlewares.RandomProxy': 100,
+    'zhihu.middlewares.RandomUserAgent': 200,
+    'zhihu.middlewares.CustomerDownloadTimeoutMiddleware': 300
 }
 
 # Enable or disable extensions

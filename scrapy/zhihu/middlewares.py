@@ -4,16 +4,21 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 import random
+import re
 import time
 
 import requests
-from zhihu.util.proxy_pool import proxy_pool_url
+from zhihu.util.proxy_pool import ProxyPool
 
 from scrapy import signals
 from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
+from scrapy.downloadermiddlewares.downloadtimeout import DownloadTimeoutMiddleware
+from twisted.internet.error import TimeoutError
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+
+proxy_pool = ProxyPool()
 
 
 class ZhihuSpiderMiddleware:
@@ -110,6 +115,14 @@ class ZhihuDownloaderMiddleware:
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
+class CustomerDownloadTimeoutMiddleware(DownloadTimeoutMiddleware):
+    def spider_opened(self, spider):
+        self._timeout = getattr(spider, 'download_timeout', 5)
+
+    def process_request(self, request, spider):
+        request.meta.setdefault('download_timeout', 5)
+
+
 class RandomUserAgent(UserAgentMiddleware):
 
     def __init__(self, user_agent_pool):
@@ -128,8 +141,23 @@ class RandomUserAgent(UserAgentMiddleware):
 
 class RandomProxy:
     def process_request(self, request, spider):
-        if proxy_pool_url:
-            proxy = requests.get(proxy_pool_url).json()['proxy']
+        proxy = proxy_pool.get_proxy().get('proxy')
+        if proxy:
+            time.sleep(0.1)
             request.meta['proxy'] = "http://{}".format(proxy)
+            print("\n准备请求的页面URL：{}".format(request.url))
+            print("使用的代理为：{}\n".format(proxy))
         else:
             print('爬虫系统没有开启IP代理，请注意爬取速度！')
+
+    def process_exception(self, request, exception, spider):
+        temp = request.meta['proxy']
+        regex = r'http:\/\/(.*)'
+        match = re.findall(regex, temp)
+        proxy = match[0]
+        result = proxy_pool.delete_proxy(proxy)
+        print(result)
+        if isinstance(exception, TimeoutError):
+            return request
+        print("IP Invalid: {}".format(request.meta['proxy']))
+        return request

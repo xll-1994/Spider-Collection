@@ -6,24 +6,28 @@ import random
 
 from scrapy.spiders import CrawlSpider, Rule, Request
 from scrapy.linkextractors import LinkExtractor
+from zhihu.util.proxy_pool import ProxyPool
 
 from zhihu.items import Question
 from zhihu.util.cookies import default_cookies
 from zhihu.util.user_agent_pool import user_agent_pool
+
+proxy_pool = ProxyPool()
 
 
 class QuestionSpider(CrawlSpider, ABC):
     name = 'question_spider'
     allowed_domains = ['www.zhihu.com']
     start_urls = [
-        'https://www.zhihu.com/question/437699743'
+        'https://www.zhihu.com/explore'
     ]
     rules = (
         Rule(
             LinkExtractor(allow=('https://www.zhihu.com/question/(\d+)$')),
             callback='parse_item',
             follow=True,
-            process_request='_set_cookies'
+            process_request='_set_cookies',
+            errback='_parse_err'
         ),
     )
 
@@ -32,15 +36,42 @@ class QuestionSpider(CrawlSpider, ABC):
             cookie_value = default_cookies
             yield Request(url=url,
                           cookies={'KLBRSID': cookie_value},
-                          # meta={
-                          #     'dont_redirect': True,
-                          #     'handle_httpstatus_list': [301, 302]
-                          # }
+                          meta={
+                              'dont_redirect': True,
+                              'handle_httpstatus_list': [301, 302],
+                              'download_timeout': 4
+                          },
+                          dont_filter=False
                           )
 
     def parse_item(self, response):
+        response_status = response.status
+        cookie_value = self._get_cookie_value(response)
         question_id = self._parse_question_id(response)
-        if question_id:
+        if response_status == 302:
+            print("链接被重定向了")
+            url = response.request.url
+            temp = response.request.meta['proxy']
+            print(response.request.url)
+            print(response.request.meta['proxy'])
+            regex = r'http:\/\/(.*)'
+            match = re.findall(regex, temp)
+            proxy = match[0]
+            result = proxy_pool.delete_proxy(proxy)
+            print(result)
+            yield Request(url=url,
+                          cookies={'KLBRSID': cookie_value},
+                          headers={'User-Agent': random.choice(user_agent_pool)},
+                          callback=self.parse_item,
+                          meta={
+                              'dont_redirect': True,
+                              'handle_httpstatus_list': [301, 302],
+                              'download_timeout': 4
+                          },
+                          dont_filter=False,
+                          errback=self._parse_err
+                          )
+        if response_status == 200:
             question = Question()
             question['question_id'] = question_id
             question['url'] = response.url
@@ -65,22 +96,33 @@ class QuestionSpider(CrawlSpider, ABC):
             yield question
 
         url = 'https://www.zhihu.com/api/v4/questions/{}/similar-questions?limit=5'.format(question_id)
-        cookie_value = self._get_cookie_value(response)
-        res = requests.get(url=url, cookies={'KLBRSID': cookie_value},
-                           headers={'User-Agent': random.choice(user_agent_pool)}, timeout=5)
-        for data in res.json()['data']:
-            question_id = data['id']
-            url = 'https://www.zhihu.com/question/' + str(question_id)
-            yield Request(url=url,
-                          cookies={'KLBRSID': cookie_value},
-                          headers={'User-Agent': random.choice(user_agent_pool)},
-                          callback=self.parse_item,
-                          meta={
-                              'dont_redirect': True,
-                              'handle_httpstatus_list': [301, 302],
-                              'download_timeout': 3
-                          },
-                          )
+        proxies = response.request.meta['proxy']
+        try:
+            res = requests.get(url=url, cookies={'KLBRSID': cookie_value},
+                               headers={'User-Agent': random.choice(user_agent_pool)}, timeout=5,
+                               proxies={'http': proxies})
+            for data in res.json()['data']:
+                question_id = data['id']
+                url = 'https://www.zhihu.com/question/' + str(question_id)
+                yield Request(url=url,
+                              cookies={'KLBRSID': cookie_value},
+                              headers={'User-Agent': random.choice(user_agent_pool)},
+                              callback=self.parse_item,
+                              meta={
+                                  'dont_redirect': True,
+                                  'handle_httpstatus_list': [301, 302],
+                                  'download_timeout': 7
+                              },
+                              dont_filter=False,
+                              errback=self._parse_err
+                              )
+        except Exception:
+            print("出错")
+
+    @staticmethod
+    def _parse_err(self, response):
+        print("这个代理失效了！")
+        print(response.request.meta['proxy'])
 
     @staticmethod
     def _set_cookies(request, response):
