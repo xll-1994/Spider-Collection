@@ -16,7 +16,7 @@ class QuestionSpider(CrawlSpider, ABC):
     name = 'question_spider'
     allowed_domains = ['www.zhihu.com']
     start_urls = [
-        'https://www.zhihu.com/explore/'
+        'https://www.zhihu.com/question/437699743'
     ]
     rules = (
         Rule(
@@ -32,10 +32,10 @@ class QuestionSpider(CrawlSpider, ABC):
             cookie_value = default_cookies
             yield Request(url=url,
                           cookies={'KLBRSID': cookie_value},
-                          meta={
-                              'dont_redirect': True,
-                              'handle_httpstatus_list': [301, 302]
-                          }
+                          # meta={
+                          #     'dont_redirect': True,
+                          #     'handle_httpstatus_list': [301, 302]
+                          # }
                           )
 
     def parse_item(self, response):
@@ -67,7 +67,7 @@ class QuestionSpider(CrawlSpider, ABC):
         url = 'https://www.zhihu.com/api/v4/questions/{}/similar-questions?limit=5'.format(question_id)
         cookie_value = self._get_cookie_value(response)
         res = requests.get(url=url, cookies={'KLBRSID': cookie_value},
-                           headers={'User-Agent': random.choice(user_agent_pool)})
+                           headers={'User-Agent': random.choice(user_agent_pool)}, timeout=5)
         for data in res.json()['data']:
             question_id = data['id']
             url = 'https://www.zhihu.com/question/' + str(question_id)
@@ -77,8 +77,9 @@ class QuestionSpider(CrawlSpider, ABC):
                           callback=self.parse_item,
                           meta={
                               'dont_redirect': True,
-                              'handle_httpstatus_list': [301, 302]
-                          }
+                              'handle_httpstatus_list': [301, 302],
+                              'download_timeout': 3
+                          },
                           )
 
     @staticmethod

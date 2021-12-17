@@ -129,12 +129,7 @@ class RandomUserAgent(UserAgentMiddleware):
 class RandomProxy:
     def process_request(self, request, spider):
         if proxy_pool_url:
-            time.sleep(3)
-            print("\n正在获取代理地址")
-            proxy = requests.get(proxy_pool_url).json()['data']
-            ip = proxy[0]['ip']
-            port = proxy[0]['port']
-            request.meta['proxy'] = "http://{}:{}".format(ip, port)
-            print("代理地址为：{}\n".format(request.meta['proxy']))
+            proxy = requests.get(proxy_pool_url).json()['proxy']
+            request.meta['proxy'] = "http://{}".format(proxy)
         else:
             print('爬虫系统没有开启IP代理，请注意爬取速度！')
