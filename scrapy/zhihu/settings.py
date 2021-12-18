@@ -92,3 +92,7 @@ AUTOTHROTTLE_ENABLED = True
 # HTTPCACHE_DIR = 'httpcache'
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+# 连接失败的最大重试次数
+RETRY_ENABLED = True
+RETRY_TIMES = 1

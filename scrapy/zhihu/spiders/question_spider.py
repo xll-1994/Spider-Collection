@@ -21,13 +21,12 @@ class QuestionSpider(CrawlSpider, ABC):
     start_urls = [
         'https://www.zhihu.com/explore'
     ]
+    handle_httpstatus_list = [301, 302]
     rules = (
         Rule(
             LinkExtractor(allow=('https://www.zhihu.com/question/(\d+)$')),
             callback='parse_item',
-            follow=True,
-            process_request='_set_cookies',
-            errback='_parse_err'
+            process_request='_set_cookies'
         ),
     )
 
@@ -39,9 +38,9 @@ class QuestionSpider(CrawlSpider, ABC):
                           meta={
                               'dont_redirect': True,
                               'handle_httpstatus_list': [301, 302],
-                              'download_timeout': 4
+                              'download_timeout': 3
                           },
-                          dont_filter=False
+                          dont_filter=True
                           )
 
     def parse_item(self, response):
@@ -49,16 +48,15 @@ class QuestionSpider(CrawlSpider, ABC):
         cookie_value = self._get_cookie_value(response)
         question_id = self._parse_question_id(response)
         if response_status == 302:
-            print("链接被重定向了")
             url = response.request.url
             temp = response.request.meta['proxy']
-            print(response.request.url)
-            print(response.request.meta['proxy'])
             regex = r'http:\/\/(.*)'
             match = re.findall(regex, temp)
             proxy = match[0]
+            print('代理 {proxy} 连接 {url} 时发生302重定向，准备删除代理后访问原链接'.format(proxy=proxy, url=url))
             result = proxy_pool.delete_proxy(proxy)
             print(result)
+            proxy = proxy_pool.get_proxy().get('proxy')
             yield Request(url=url,
                           cookies={'KLBRSID': cookie_value},
                           headers={'User-Agent': random.choice(user_agent_pool)},
@@ -66,10 +64,10 @@ class QuestionSpider(CrawlSpider, ABC):
                           meta={
                               'dont_redirect': True,
                               'handle_httpstatus_list': [301, 302],
-                              'download_timeout': 4
+                              'download_timeout': 3,
+                              'proxy': "http://{}".format(proxy)
                           },
-                          dont_filter=False,
-                          errback=self._parse_err
+                          dont_filter=True
                           )
         if response_status == 200:
             question = Question()
@@ -82,7 +80,7 @@ class QuestionSpider(CrawlSpider, ABC):
             question['answer_num'] = self._parse_answer_num(response)
             question['comment_num'] = self._parse_comment_num(response)
             question['vote_up_num'] = self._parse_vote_up_num(response)
-            question['tag'] = self._parse_tags(response)
+            question['tag'] = self._parse_tag(response)
             regex = r'KLBRSID=(.*);'
             match = re.findall(regex, response.headers['set-cookie'].decode('utf-8'))
             question['cookies'] = match[0]
@@ -111,18 +109,12 @@ class QuestionSpider(CrawlSpider, ABC):
                               meta={
                                   'dont_redirect': True,
                                   'handle_httpstatus_list': [301, 302],
-                                  'download_timeout': 7
+                                  'download_timeout': 3
                               },
-                              dont_filter=False,
-                              errback=self._parse_err
+                              dont_filter=False
                               )
         except Exception:
-            print("出错")
-
-    @staticmethod
-    def _parse_err(self, response):
-        print("这个代理失效了！")
-        print(response.request.meta['proxy'])
+            print(Exception)
 
     @staticmethod
     def _set_cookies(request, response):
@@ -161,7 +153,7 @@ class QuestionSpider(CrawlSpider, ABC):
         regex = '//div[text()="关注者"]/following::strong/@title'
         match = response.xpath(regex).get()
         if match:
-            return match
+            return int(match)
         return 0
 
     @staticmethod
@@ -169,7 +161,7 @@ class QuestionSpider(CrawlSpider, ABC):
         regex = '//div[text()="被浏览"]/following::strong/@title'
         match = response.xpath(regex).get()
         if match:
-            return match
+            return int(match)
         return 0
 
     @staticmethod
@@ -177,8 +169,7 @@ class QuestionSpider(CrawlSpider, ABC):
         regex = '//h4[@class="List-headerText"]/span/text()'
         match = response.xpath(regex).get()
         if match:
-            temp = int(match.replace(',', ''))
-            return temp
+            return int(match.replace(',', ''))
         return 0
 
     @staticmethod
@@ -186,7 +177,7 @@ class QuestionSpider(CrawlSpider, ABC):
         regex = '<\/path><\/svg><\/span>(\d+) 条评论<\/button>'
         match = re.findall(regex, response.text)
         if match:
-            return match[0]
+            return int(match[0])
         return 0
 
     @staticmethod
@@ -194,11 +185,11 @@ class QuestionSpider(CrawlSpider, ABC):
         regex = r'<\/path><\/svg><\/span>好问题 (\d+)<\/button>'
         match = re.findall(regex, response.text)
         if match:
-            return match[0]
+            return int(match[0])
         return 0
 
     @staticmethod
-    def _parse_tags(response):
+    def _parse_tag(response):
         regex = r'class=\"TopicLink\" href=\"\/\/www.zhihu.com\/topic\/(\d+)\"'
         matches = re.findall(regex, response.text)
         if matches:
@@ -217,4 +208,6 @@ class QuestionSpider(CrawlSpider, ABC):
     def _get_cookie_value(response):
         regex = r'KLBRSID=(.*);'
         match = re.findall(regex, response.headers['set-cookie'].decode('utf-8'))
-        return match[0]
+        if match:
+            return match[0]
+        return None

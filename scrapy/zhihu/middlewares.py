@@ -13,6 +13,7 @@ from zhihu.util.proxy_pool import ProxyPool
 from scrapy import signals
 from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
 from scrapy.downloadermiddlewares.downloadtimeout import DownloadTimeoutMiddleware
+from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from twisted.internet.error import TimeoutError
 
 # useful for handling different item types with a single interface
@@ -117,10 +118,10 @@ class ZhihuDownloaderMiddleware:
 
 class CustomerDownloadTimeoutMiddleware(DownloadTimeoutMiddleware):
     def spider_opened(self, spider):
-        self._timeout = getattr(spider, 'download_timeout', 5)
+        self._timeout = getattr(spider, 'download_timeout', 3)
 
     def process_request(self, request, spider):
-        request.meta.setdefault('download_timeout', 5)
+        request.meta.setdefault('download_timeout', 3)
 
 
 class RandomUserAgent(UserAgentMiddleware):
@@ -141,12 +142,23 @@ class RandomUserAgent(UserAgentMiddleware):
 
 class RandomProxy:
     def process_request(self, request, spider):
+        regex = 'https:\/\/www.zhihu.com\/account\/(.*)'
+        match = re.findall(regex, request.url)
+        if match:
+            temp = request.meta['proxy']
+            regex = r'http:\/\/(.*)'
+            match = re.findall(regex, temp)
+            proxy = match[0]
+            result = proxy_pool.delete_proxy(proxy)
+            print(result)
+            temp_url = request.meta['redirect_urls'][0]
+            request._set_url(temp_url)
         proxy = proxy_pool.get_proxy().get('proxy')
         if proxy:
-            time.sleep(0.1)
+            time.sleep(0.2)
             request.meta['proxy'] = "http://{}".format(proxy)
-            print("\n准备请求的页面URL：{}".format(request.url))
-            print("使用的代理为：{}\n".format(proxy))
+            url = request.url
+            print("\n准备使用 {proxy} 连接 {url}\n".format(proxy=proxy, url=url))
         else:
             print('爬虫系统没有开启IP代理，请注意爬取速度！')
 
@@ -155,9 +167,17 @@ class RandomProxy:
         regex = r'http:\/\/(.*)'
         match = re.findall(regex, temp)
         proxy = match[0]
-        result = proxy_pool.delete_proxy(proxy)
-        print(result)
+        url = request.url
         if isinstance(exception, TimeoutError):
+            print("\n代理 {proxy} 连接 {url} 超时，准备删除代理后重试\n".format(proxy=proxy, url=url))
+            result = proxy_pool.delete_proxy(proxy)
+            print(result)
+            print("正在重新匹配代理并连接 {url}".format(url=url))
             return request
-        print("IP Invalid: {}".format(request.meta['proxy']))
+        print("\n代理 {proxy} 连接 {url} 出错，准备删除代理后重试".format(proxy=proxy, url=url))
+        print(exception)
+        result = proxy_pool.delete_proxy(proxy)
+        print("\n")
+        print(result)
+        print("正在重新匹配代理并连接 {url}\n".format(url=url))
         return request
