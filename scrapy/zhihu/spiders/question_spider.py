@@ -3,6 +3,7 @@ from abc import ABC
 from datetime import datetime
 import requests
 import random
+import logging
 
 from scrapy.spiders import CrawlSpider, Rule, Request
 from scrapy.linkextractors import LinkExtractor
@@ -53,9 +54,9 @@ class QuestionSpider(CrawlSpider, ABC):
             regex = r'http:\/\/(.*)'
             match = re.findall(regex, temp)
             proxy = match[0]
-            print('代理 {proxy} 连接 {url} 时发生302重定向，准备删除代理后访问原链接'.format(proxy=proxy, url=url))
+            logging.info('代理 {proxy} 连接 {url} 时发生302重定向，准备删除代理后访问原链接'.format(proxy=proxy, url=url))
             result = proxy_pool.delete_proxy(proxy)
-            print(result)
+            logging.info(result)
             proxy = proxy_pool.get_proxy().get('proxy')
             yield Request(url=url,
                           cookies={'KLBRSID': cookie_value},
@@ -113,8 +114,8 @@ class QuestionSpider(CrawlSpider, ABC):
                               },
                               dont_filter=False
                               )
-        except Exception:
-            print(Exception)
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def _set_cookies(request, response):
