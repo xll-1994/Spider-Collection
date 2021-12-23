@@ -175,11 +175,10 @@ class QuestionSpider(CrawlSpider, ABC):
 
     @staticmethod
     def _parse_comment_num(response):
-        regex = '<\/path><\/svg><\/span>(\d+) 条评论<\/button>'
-        match = re.findall(regex, response.text)
-        if match:
-            return int(match[0])
-        return 0
+        regex = '//div[@class="QuestionHeader-Comment"]/button/text()'
+        match = response.xpath(regex).get()
+        match = re.findall(r'(\d+)', match)
+        return int(match[0]) if match else 0
 
     @staticmethod
     def _parse_vote_up_num(response):
