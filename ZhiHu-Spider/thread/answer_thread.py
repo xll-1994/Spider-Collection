@@ -47,7 +47,7 @@ class AnswerThread(Thread):
             answer_detail['answer_id'] = answer_id
             answer_detail['user_id'] = user_id
             answer_detail['insert_time'] = datetime.now()
-            SaveData(answer_detail).to_mysql('answer')
+            SaveData(answer_detail).to_mongo(table_name='answer', unique_id='answer_id')
 
 
 def answer_thread_pool(target_queue, cookie):

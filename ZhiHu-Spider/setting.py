@@ -16,6 +16,14 @@ MYSQL_PASSWORD = 'password'
 MYSQL_DATABASE = 'zhi_hu_db'
 # ---------- MYSQL CONFIG ---------- #
 
+# ---------- MYSQL CONFIG ---------- #
+MONGO_HOST = '127.0.0.1'
+MONGO_PORT = 27017
+MONGO_USERNAME = 'username'
+MONGO_PASSWORD = 'password'
+MONGO_DATABASE = 'zhi_hu_db'
+# ---------- MYSQL CONFIG ---------- #
+
 # ---------- REDIS CONFIG ---------- #
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379

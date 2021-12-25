@@ -73,8 +73,28 @@ class ConfigHandler(object):
 
     @property
     def crawling_table(self):
-        return os.environ.get("crawling_table", setting.CRAWLING_TABLE)
+        return os.environ.get("CRAWLING_TABLE", setting.CRAWLING_TABLE)
 
     @property
     def crawling_answer(self):
-        return os.environ.get("crawling_answer", setting.CRAWLING_ANSWER)
+        return os.environ.get("CRAWLING_ANSWER", setting.CRAWLING_ANSWER)
+
+    @property
+    def mongo_host(self):
+        return os.environ.get('MONGO_HOST', setting.MONGO_HOST)
+
+    @property
+    def mongo_port(self):
+        return int(os.environ.get('MONGO_PORT', setting.MONGO_PORT))
+
+    @property
+    def mongo_username(self):
+        return os.environ.get('MONGO_USERNAME', setting.MONGO_USERNAME)
+
+    @property
+    def mongo_password(self):
+        return os.environ.get('MONGO_PASSWORD', setting.MONGO_PASSWORD)
+
+    @property
+    def mongo_database(self):
+        return os.environ.get('MONGO_DATABASE', setting.MONGO_DATABASE)
