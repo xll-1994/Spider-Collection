@@ -4,6 +4,10 @@
 # Description:  
 # CreateDate:   2021/12/25
 
+# ---------- SPIDER INFO ---------- #
+VERSION = '1.0.1'
+# ---------- SPIDER INFO ---------- #
+
 # ---------- MYSQL CONFIG ---------- #
 MYSQL_HOST = '127.0.0.1'
 MYSQL_PORT = 3306
