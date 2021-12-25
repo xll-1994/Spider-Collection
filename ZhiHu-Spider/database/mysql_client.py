@@ -24,11 +24,12 @@ class MysqlClient(object):
         )
         self.__cursor = self.__conn.cursor()
 
-    def save_answer(self, answer_detail):
+    def save(self, answer_detail, table_name):
         keys = answer_detail.keys()
         values = tuple(answer_detail.values())
         fields = ','.join(keys)
         temp = ','.join(['%s'] * len(keys))
-        sql = 'INSERT INTO answer (%s) VALUES (%s)' % (fields, temp)
+        sql = 'INSERT INTO {table_name} ({fields}) VALUES ({temp})'.format(table_name=table_name, fields=fields,
+                                                                           temp=temp)
         self.__cursor.execute(sql, values)
         return self.__conn.commit()

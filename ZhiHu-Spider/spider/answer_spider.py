@@ -11,7 +11,7 @@ from util import WebRequest
 from handler import ConfigHandler
 from database import RedisClient
 from helper import AnswerHelper
-from thread import AnswerThread
+from thread import answer_thread_pool
 
 
 class AnswerSpider(object):
@@ -55,21 +55,7 @@ class AnswerSpider(object):
             for obj in answer_obj:
                 answer_queue.put(obj)
             cookie = self.cookie
-            self.get_detail(target_queue=answer_queue, cookie=cookie)
-
-    def get_detail(self, target_queue, cookie):
-        thread_list = list()
-        for _index in range(10):
-            thread_list.append(
-                AnswerThread(target_queue=target_queue, thread_name='thread_{}'.format(str(_index).zfill(2)),
-                             cookie=cookie))
-
-        for thread in thread_list:
-            thread.setDaemon(True)
-            thread.start()
-
-        for thread in thread_list:
-            thread.join()
+            answer_thread_pool(target_queue=answer_queue, cookie=cookie)
 
     @staticmethod
     def get_user_id(data):
@@ -84,4 +70,4 @@ class AnswerSpider(object):
 
 
 if __name__ == '__main__':
-    AnswerSpider(266739695).run()
+    pass
