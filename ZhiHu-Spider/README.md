@@ -1,9 +1,22 @@
 ## 知乎爬虫系统
 ### 主要功能
-- [x] 采集单个问题的答案信息
+- [x] 采集单个问题的回答信息
 - [ ] 采集单个问题的基本信息
 - [ ] 采集单个问题的相关问题
 - [ ] 采集单个问题的回答者信息
+#### 采集单个问题的回答信息
+|   数据库字段   |       含义       |
+| :------------: | :--------------: |
+|  question_id   | 问题ID |
+|   answer_id    | 答案ID |
+|    user_id     | 用户ID |
+| answer_content |     回答内容     |
+|  vote_up_num   |      点赞数      |
+|  comment_num   |      评论数      |
+|   edit_time    |     回答时间     |
+|  insert_time   |     采集时间     |
+如果回答里面只有视频、图片，那么采集到的answer_content就是空的。
+![](screen_shot/img_1.png)
 ### 支持的数据导出模式
 - [x] .xls文件（默认）
 - [x] mysql
@@ -19,7 +32,7 @@
 ```shell
 git clone https://github.com/xll-1994/Spider-Collection.git
 ```
-### 配置运行环境（setting.py）
+### 配置运行环境
 ```shell
 cd ZhiHu-Spider # 进入项目目录
 pip3 install virtualenv # 已安装的可忽略
