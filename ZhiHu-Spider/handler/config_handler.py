@@ -52,6 +52,10 @@ class ConfigHandler(object):
         return int(os.environ.get("TIMEOUT", setting.TIMEOUT))
 
     @property
+    def use_redis(self):
+        return int(os.environ.get('USE_REDIS', setting.USE_REDIS))
+
+    @property
     def redis_host(self):
         return os.environ.get("REDIS_HOST", setting.REDIS_HOST)
 

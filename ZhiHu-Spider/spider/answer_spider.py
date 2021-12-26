@@ -25,14 +25,16 @@ class AnswerSpider(object):
     """
 
     def __init__(self, question_id):
+        self.answer_info_table = list()
         self.question_id = question_id
         self.total = 0
         self.offset_num = 0
         self.cookie = None
         self.conf = ConfigHandler()
         self.log = LogHandler('question_api')
-        self.db = RedisClient(host=self.conf.redis_host, port=self.conf.redis_port, db=self.conf.redis_db,
-                              password=self.conf.redis_password)
+        if self.conf.use_redis == 1:
+            self.db = RedisClient(host=self.conf.redis_host, port=self.conf.redis_port, db=self.conf.redis_db,
+                                  password=self.conf.redis_password)
 
     def run(self):
         base_url = 'https://www.zhihu.com/api/v4/questions/{question_id}/answers?offset={offset_num}&limit=20'.format(
@@ -41,19 +43,30 @@ class AnswerSpider(object):
                                                               str(self.offset_num + 20)))
         res = WebRequest().get(base_url)
         self.total = res.json['paging']['totals']
-        self.db.change_table(self.question_id)
+
+        if self.conf.use_redis == 1:
+            self.db.change_table(self.question_id)
         for data in res.json['data']:
             user_id = self.get_user_id(data)
             answer_id = self.get_answer_id(data)
             answer_dict = AnswerHelper(user_id=user_id, answer_id=answer_id, question_id=self.question_id)
-            self.db.update(answer_dict)
+            if self.conf.use_redis == 1:
+                self.db.update(answer_dict)
+            else:
+                self.answer_info_table.append(answer_dict.to_json)
         if self.offset_num + 20 < self.total:
             self.offset_num += 20
             self.run()
         else:
-            total = self.db.get_count()
+            if self.conf.use_redis == 1:
+                total = self.db.get_count()
+            else:
+                total = len(self.answer_info_table)
             self.log.info("共获取 {total} 条回答ID".format(total=total))
-            answer_obj = self.db.get_all()
+            if self.conf.use_redis == 1:
+                answer_obj = self.db.get_all()
+            else:
+                answer_obj = self.answer_info_table
             answer_queue = Queue()
             for obj in answer_obj:
                 answer_queue.put(obj)
