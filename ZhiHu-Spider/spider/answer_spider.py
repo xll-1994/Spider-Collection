@@ -9,6 +9,7 @@ from queue import Queue
 
 from util import WebRequest
 from handler import ConfigHandler
+from handler import LogHandler
 from database import RedisClient
 from helper import AnswerHelper
 from thread import answer_thread_pool
@@ -29,14 +30,16 @@ class AnswerSpider(object):
         self.offset_num = 0
         self.cookie = None
         self.conf = ConfigHandler()
+        self.log = LogHandler('question_api')
         self.db = RedisClient(host=self.conf.redis_host, port=self.conf.redis_port, db=self.conf.redis_db,
                               password=self.conf.redis_password)
 
     def run(self):
         base_url = 'https://www.zhihu.com/api/v4/questions/{question_id}/answers?offset={offset_num}&limit=20'.format(
             question_id=self.question_id, offset_num=self.offset_num)
-        res = WebRequest().get(base_url, cookie=self.cookie)
-        self.cookie = res.set_cookies
+        self.log.info('正在采集ID为 {} 的问题的第 {} 到 {} 个回答ID'.format(self.question_id, str(self.offset_num),
+                                                              str(self.offset_num + 20)))
+        res = WebRequest().get(base_url)
         self.total = res.json['paging']['totals']
         self.db.change_table(self.question_id)
         for data in res.json['data']:
@@ -49,13 +52,13 @@ class AnswerSpider(object):
             self.run()
         else:
             total = self.db.get_count()
-            print("共获取{total}条回答信息".format(total=total))
+            self.log.info("共获取 {total} 条回答ID".format(total=total))
             answer_obj = self.db.get_all()
             answer_queue = Queue()
             for obj in answer_obj:
                 answer_queue.put(obj)
-            cookie = self.cookie
-            answer_thread_pool(target_queue=answer_queue, cookie=cookie)
+            answer_thread_pool(target_queue=answer_queue, thread_num=self.conf.thread_num)
+            self.log.info("已完成对 {total} 条回答的采集工作！".format(total=total))
 
     @staticmethod
     def get_user_id(data):

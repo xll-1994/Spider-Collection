@@ -38,10 +38,6 @@ class ProxyHandler(object):
         """
         api_url = "http://{host}:{port}/delete/?proxy={proxy}".format(host=self.host, port=self.port, proxy=proxy)
         try:
-            result = requests.get(api_url).json()['code']
-            if result:
-                print("代理已成功删除！")
-            else:
-                print("代理不存在！")
+            requests.get(api_url).json()['code']
         except Exception as e:
             print(e)

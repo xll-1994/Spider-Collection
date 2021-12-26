@@ -110,3 +110,15 @@ class ConfigHandler(object):
     @property
     def use_xls(self):
         return int(os.environ.get('USE_XLS', setting.USE_XLS))
+
+    @property
+    def use_proxy(self):
+        return int(os.environ.get('USE_PROXY', setting.USE_PROXY))
+
+    @property
+    def thread_num(self):
+        return int(os.environ.get('THREAD_NUM', setting.THREAD_NUM))
+
+    @property
+    def interval_time(self):
+        return float(os.environ.get('INTERVAL_TIME', setting.INTERVAL_TIME))

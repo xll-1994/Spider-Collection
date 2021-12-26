@@ -6,15 +6,14 @@
 
 import time
 import random
-import re
 
 import requests
 from lxml import etree
 
 from util import USER_AGENT_POOL
-from util import COOKIES_POOL
 from handler import ProxyHandler
 from handler import ConfigHandler
+from handler import LogHandler
 
 
 class WebRequest(object):
@@ -22,11 +21,13 @@ class WebRequest(object):
     def __init__(self):
         self.conf = ConfigHandler()
         self.response = requests.Response
+        self.log = LogHandler('web_request')
 
     def get(self, url, proxy=None, cookie=None, *args, **kwargs):
-        api_proxy = ''
+        api_proxy = None
         while True:
             try:
+                time.sleep(self.conf.interval_time)
                 if isinstance(cookie, dict):
                     cookies = cookie
                 else:
@@ -44,13 +45,14 @@ class WebRequest(object):
                 if self.response.status_code == 200:
                     return self
                 else:
-                    ProxyHandler().delete(api_proxy)
-                    time.sleep(0.5)
+                    self.log.warning('访问 {} 失败，返回 {} 提示，正在重新连接！'.format(url, self.response.status_code))
+                    if api_proxy:
+                        ProxyHandler().delete(api_proxy)
                     self.get(url)
-            except Exception as e:
-                ProxyHandler().delete(api_proxy)
-                print(e)
-                time.sleep(0.5)
+            except Exception:
+                self.log.warning('访问 {} 发生未知错误，正在重新连接！'.format(url))
+                if api_proxy:
+                    ProxyHandler().delete(api_proxy)
 
     @property
     def user_agent(self):
@@ -58,7 +60,15 @@ class WebRequest(object):
 
     @property
     def cookies(self):
-        return random.choice(COOKIES_POOL)
+        my_time = int(time.time())
+        str_list = []
+        for i in range(32):
+            temp = str(hex(random.randint(0, 15)))[2:]
+            str_list.append(temp)
+        str_value = ''.join(str_list)
+        return {
+            'KLBRSID': '{}|{}|{}'.format(str_value, my_time, my_time)
+        }
 
     @property
     def headers(self):
@@ -71,23 +81,20 @@ class WebRequest(object):
 
     @property
     def proxy(self):
-        return ProxyHandler().get()
+        if self.conf.use_proxy == 1:
+            return ProxyHandler().get()
+        else:
+            return None
 
     @staticmethod
     def set_proxies(proxy):
-        return {
-            'http': 'http://{proxy}'.format(proxy=proxy),
-            'https': 'https://{proxy}'.format(proxy=proxy)
-        }
-
-    @property
-    def set_cookies(self):
-        cookies = self.response.headers['set-cookie']
-        regex = r'KLBRSID=([^;]+);'
-        value = re.findall(regex, cookies)[0]
-        return {
-            'KLBRSID': value
-        }
+        if proxy:
+            return {
+                'http': 'http://{proxy}'.format(proxy=proxy),
+                'https': 'https://{proxy}'.format(proxy=proxy)
+            }
+        else:
+            return None
 
     @property
     def text(self):

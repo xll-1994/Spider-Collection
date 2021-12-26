@@ -8,9 +8,14 @@
 VERSION = '1.0.1'
 # ---------- SPIDER INFO ---------- #
 
+# ---------- SPIDER CONFIG ---------- #
+THREAD_NUM = 1
+INTERVAL_TIME = 0.5
+# ---------- SPIDER CONFIG ---------- #
+
 # ---------- EXPORT INFO ---------- #
-USE_MYSQL = 1
-USE_MONGO = 0
+USE_MYSQL = 0
+USE_MONGO = 1
 USE_XLS = 0
 # ---------- EXPORT INFO ---------- #
 
@@ -41,6 +46,7 @@ CRAWLING_ANSWER = 'crawling_answer'
 # ---------- REDIS CONFIG ---------- #
 
 # ---------- PROXY CONFIG ---------- #
+USE_PROXY = 1
 PROXY_HOST = '127.0.0.1'
 PROXY_PORT = 5010
 # ---------- PROXY CONFIG ---------- #

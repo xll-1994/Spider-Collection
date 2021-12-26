@@ -18,7 +18,7 @@ def cli():
 
 @cli.command(name='answer_spider')
 def answer_spider():
-    question_id = input("输入要爬取的问题ID：")
+    question_id = input("输入要采集的问题ID：")
     start_answer_spider(question_id)
 
 

@@ -32,7 +32,7 @@ class SaveData(object):
         db[self.table_name].update_one({self.unique_id: self.data[self.unique_id]}, {'$set': self.data}, upsert=True)
 
     def to_xls(self):
-        file_name = 'data/{}/{}.xls'.format(self.table_name, self.table_name)
+        file_name = 'data/{}.xls'.format(self.table_name, self.table_name)
         try:
             rd_book = xlrd.open_workbook(file_name)
             rd_sheet = rd_book.sheet_by_name('sheet')
@@ -40,7 +40,6 @@ class SaveData(object):
             wt_book = copy(rd_book)
             wt_sheet = wt_book.get_sheet('sheet')
         except:
-            os.makedirs('data/{}'.format(self.table_name))
             wt_book = xlwt.Workbook(encoding='utf-8')
             wt_sheet = wt_book.add_sheet('sheet')
             my_keys = list(self.data.keys())
@@ -58,4 +57,9 @@ class SaveData(object):
         if self.conf.use_mongo == 1:
             self.to_mongo()
         if self.conf.use_xls == 1:
+            if not os.path.exists('data'.format(self.table_name)):
+                try:
+                    os.makedirs('data'.format(self.table_name))
+                except FileExistsError:
+                    pass
             self.to_xls()
