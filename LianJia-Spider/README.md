@@ -42,4 +42,4 @@ rest_max_time = 5
 python3 main.py
 ```
 ### 问题反馈
-##### 涉及该程序的任何问题，欢迎大家在 [Issues](https://github.com/xll-1994/LianJiaZuFangSpider/issues) 中进行反馈。
+##### 涉及该程序的任何问题，欢迎大家在 [Issues](https://github.com/xll-1994/Spider-Collection/issues) 中进行反馈。
