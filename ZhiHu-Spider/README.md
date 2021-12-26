@@ -19,7 +19,7 @@
 ```shell
 git clone https://github.com/xll-1994/Spider-Collection.git
 ```
-### 配置运行环境
+### 配置运行环境（setting.py）
 ```shell
 cd ZhiHu-Spider # 进入项目目录
 pip3 install virtualenv # 已安装的可忽略
@@ -27,8 +27,8 @@ virtualenv --python=python3 env # 创建虚拟环境
 source env/bin/activate # 激活虚拟环境
 pip3 install -r requirements.txt
 ```
-### 配置导出模式
-在setting.py中，将希望用到的导出模式赋值为1，其余设置为0
+### 配置导出模式（setting.py）
+将希望用到的导出模式的值改为1，其余设置为0
 ```python
 # ---------- EXPORT INFO ---------- #
 # 默认使用.xls文件存储导出的数据
@@ -38,7 +38,7 @@ USE_MONGO = 0
 USE_XLS = 1
 # ---------- EXPORT INFO ---------- #
 ```
-### 配置爬虫能力
+### 配置爬虫能力（setting.py）
 ```python
 # ---------- SPIDER CONFIG ---------- #
 # 默认开启线程数为2个
@@ -47,8 +47,8 @@ THREAD_NUM = 2
 INTERVAL_TIME = 1
 # ---------- SPIDER CONFIG ---------- #
 ```
-### 配置连接模式
-我这里使用了 **@J_hao104** 的 **[proxy_pool](https://github.com/jhao104/proxy_pool)** 项目。只需在本地开启这个代理池，并将USE_PROXY的值改为1就能使用代理了。
+### 配置连接模式（setting.py）
+我这里使用了 **@J_hao104** 的 **[proxy_pool](https://github.com/jhao104/proxy_pool)** 项目。如果你使用了同款项目，只需在本地开启这个代理池，并将USE_PROXY的值改为1就能无缝调用代理池中的IP了。
 ```python
 # ---------- PROXY CONFIG ---------- #
 # 启用代理进行访问时，需保证已配置对应的API访问接口
