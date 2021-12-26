@@ -15,8 +15,8 @@
 |  comment_num   |      评论数      |
 |   edit_time    |     回答时间     |
 |  insert_time   |     采集时间     |
-
-如果回答里面只有视频、图片，那么采集到的answer_content就是空的。
+#### 备注
+如果回答里面只有视频、图片，那么采集到的answer_content就是空的，如果答题者是匿名回答问题的，那么user_id就为0。
 ![](screen_shot/img_1.png)
 ### 支持的数据导出模式
 - [x] .xls文件（默认）
