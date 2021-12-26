@@ -8,6 +8,12 @@
 VERSION = '1.0.1'
 # ---------- SPIDER INFO ---------- #
 
+# ---------- EXPORT INFO ---------- #
+USE_MYSQL = 1
+USE_MONGO = 0
+USE_XLS = 0
+# ---------- EXPORT INFO ---------- #
+
 # ---------- MYSQL CONFIG ---------- #
 MYSQL_HOST = '127.0.0.1'
 MYSQL_PORT = 3306

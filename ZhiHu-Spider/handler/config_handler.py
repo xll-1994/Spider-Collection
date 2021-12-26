@@ -98,3 +98,15 @@ class ConfigHandler(object):
     @property
     def mongo_database(self):
         return os.environ.get('MONGO_DATABASE', setting.MONGO_DATABASE)
+
+    @property
+    def use_mysql(self):
+        return int(os.environ.get('USE_MYSQL', setting.USE_MYSQL))
+
+    @property
+    def use_mongo(self):
+        return int(os.environ.get('USE_MONGO', setting.USE_MONGO))
+
+    @property
+    def use_xls(self):
+        return int(os.environ.get('USE_XLS', setting.USE_XLS))

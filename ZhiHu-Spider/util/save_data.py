@@ -3,31 +3,36 @@
 # FileName:     save_data
 # Description:  
 # CreateDate:   2021/12/25
+import os
 
-from database import MysqlClient
-from database import MongoDBClient
 import xlwt
 import xlrd
 from xlutils.copy import copy
-import json
+
+from database import MysqlClient
+from database import MongoDBClient
+from handler import ConfigHandler
 
 
 class SaveData(object):
 
-    def __init__(self, data):
+    def __init__(self, data, table_name, unique_id):
         self.data = data
+        self.table_name = table_name
+        self.unique_id = unique_id
+        self.conf = ConfigHandler()
 
-    def to_mysql(self, table_name):
+    def to_mysql(self):
         mysql_client = MysqlClient()
-        mysql_client.save(self.data, table_name=table_name)
+        mysql_client.save(self.data, table_name=self.table_name)
 
-    def to_mongo(self, table_name, unique_id):
+    def to_mongo(self):
         mongo_client = MongoDBClient()
         db = mongo_client.db
-        db[table_name].update_one({unique_id: self.data[unique_id]}, {'$set': self.data}, upsert=True)
+        db[self.table_name].update_one({self.unique_id: self.data[self.unique_id]}, {'$set': self.data}, upsert=True)
 
-    def to_xls(self, table_name):
-        file_name = 'data/{}.xls'.format(table_name)
+    def to_xls(self):
+        file_name = 'data/{}/{}.xls'.format(self.table_name, self.table_name)
         try:
             rd_book = xlrd.open_workbook(file_name)
             rd_sheet = rd_book.sheet_by_name('sheet')
@@ -35,6 +40,7 @@ class SaveData(object):
             wt_book = copy(rd_book)
             wt_sheet = wt_book.get_sheet('sheet')
         except:
+            os.makedirs('data/{}'.format(self.table_name))
             wt_book = xlwt.Workbook(encoding='utf-8')
             wt_sheet = wt_book.add_sheet('sheet')
             my_keys = list(self.data.keys())
@@ -45,3 +51,11 @@ class SaveData(object):
         for col in range(len(my_values)):
             wt_sheet.write(sheet_rows, col, my_values[col])
         wt_book.save(file_name)
+
+    def run(self):
+        if self.conf.use_mysql == 1:
+            self.to_mysql()
+        if self.conf.use_mongo == 1:
+            self.to_mongo()
+        if self.conf.use_xls == 1:
+            self.to_xls()

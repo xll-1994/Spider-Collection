@@ -47,7 +47,7 @@ class AnswerThread(Thread):
             answer_detail['answer_id'] = answer_id
             answer_detail['user_id'] = user_id
             answer_detail['insert_time'] = datetime.now()
-            SaveData(answer_detail).to_xls(table_name=question_id)
+            SaveData(data=answer_detail, table_name='answer', unique_id='answer_id').run()
 
 
 def answer_thread_pool(target_queue, cookie):
