@@ -112,8 +112,8 @@ class ConfigHandler(object):
         return int(os.environ.get('USE_MONGO', setting.USE_MONGO))
 
     @property
-    def use_xls(self):
-        return int(os.environ.get('USE_XLS', setting.USE_XLS))
+    def use_xlsx(self):
+        return int(os.environ.get('USE_XLSX', setting.USE_XLSX))
 
     @property
     def use_proxy(self):

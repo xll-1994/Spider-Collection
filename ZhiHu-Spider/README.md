@@ -20,7 +20,7 @@
 如果回答里面只有视频、图片，那么采集到的answer_content就是空的，如果答题者是匿名回答问题的，那么user_id就为0。
 ![](screen_shot/img_1.png)
 ### 支持的数据导出模式
-- [x] .xls文件（默认）
+- [x] .xlsx文件（默认）
 - [x] mysql
 - [x] mongo
 ### 支持的连接模式
@@ -36,22 +36,33 @@ git clone https://github.com/xll-1994/Spider-Collection.git
 ```
 ### 配置运行环境
 ```shell
-cd ZhiHu-Spider # 进入项目目录
-pip3 install virtualenv -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com # 已安装的可忽略
-virtualenv --python=python3 env # 创建虚拟环境
-source env/bin/activate # 激活虚拟环境（Mac OS）
-env/Scripts/activate.bat # 激活虚拟环境（Windows）
+# 进入项目目录
+cd ZhiHu-Spider
+
+# 全局安装virtualenv用于创建虚拟环境
+pip3 install virtualenv
+# 如果上面的命令安装失败，则需要切换到国内的镜像源
+pip3 install virtualenv -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+
+# 创建虚拟环境
+virtualenv --python=python3 env
+
+# 激活虚拟环境
+source env/bin/activate # Mac OS 用这个
+env\Scripts\activate.bat # Windows 用这个
+
+# 安装依赖包
 pip3 install -r requirements.txt
 ```
 ### 配置导出模式（setting.py）
 将希望用到的导出模式的值改为1，其余设置为0
 ```python
 # ---------- EXPORT INFO ---------- #
-# 默认使用.xls文件存储导出的数据
-# .xls文件将被保存在data文件夹下
+# 默认使用.xlsx文件存储导出的数据
+# .xlsx文件将被保存在data文件夹下
 USE_MYSQL = 0
 USE_MONGO = 0
-USE_XLS = 1
+USE_XLSX = 1
 # ---------- EXPORT INFO ---------- #
 ```
 ### 配置爬虫能力（setting.py）

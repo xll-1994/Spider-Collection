@@ -16,10 +16,10 @@ INTERVAL_TIME = 1
 # ---------- SPIDER CONFIG ---------- #
 
 # ---------- EXPORT INFO ---------- #
-# 默认使用.xls文件存储导出的数据
+# 默认使用.xlsx文件存储导出的数据
 USE_MYSQL = 0
 USE_MONGO = 0
-USE_XLS = 1
+USE_XLSX = 1
 # ---------- EXPORT INFO ---------- #
 
 # ---------- MYSQL CONFIG ---------- #
