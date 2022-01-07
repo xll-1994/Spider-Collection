@@ -40,7 +40,7 @@ cd ZhiHu-Spider # 进入项目目录
 pip3 install virtualenv -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com # 已安装的可忽略
 virtualenv --python=python3 env # 创建虚拟环境
 source env/bin/activate # 激活虚拟环境（Mac OS）
-env/bin/activate.bat # 激活虚拟环境（Windows）
+env/Scripts/activate.bat # 激活虚拟环境（Windows）
 pip3 install -r requirements.txt
 ```
 ### 配置导出模式（setting.py）
