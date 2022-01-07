@@ -12,7 +12,7 @@ from queue import Empty
 
 from util import WebRequest
 from util import SaveData
-from parser import AnswerParser
+from itemparser import AnswerParser
 from handler import LogHandler
 
 
