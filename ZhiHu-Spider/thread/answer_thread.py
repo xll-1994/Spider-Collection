@@ -8,10 +8,9 @@ import json
 from datetime import datetime
 
 from threading import Thread
-from queue import Empty
+from queue import Empty, Queue
 
 from util import WebRequest
-from util import SaveData
 from itemparser import AnswerParser
 from handler import LogHandler
 
@@ -21,6 +20,7 @@ class AnswerThread(Thread):
     def __init__(self, target_queue, thread_name):
         Thread.__init__(self, name=thread_name)
         self.target_queue = target_queue
+        self.output_list = []
         self.log = LogHandler('answer_thread')
 
     def run(self):
@@ -47,13 +47,17 @@ class AnswerThread(Thread):
             answer_detail['answer_id'] = answer_id
             answer_detail['user_id'] = user_id
             answer_detail['insert_time'] = datetime.now()
-            SaveData(data=answer_detail, table_name='answer', unique_id='answer_id').run()
+            try:
+                self.output_list.append(answer_detail)
+            except:
+                pass
             self.log.info("{} 完成了对回答ID {} 的访问".format(self.name, answer_id.ljust(10)))
             self.target_queue.task_done()
 
 
 def answer_thread_pool(target_queue, thread_num):
     thread_list = list()
+    output = []
     for _index in range(thread_num):
         thread_list.append(
             AnswerThread(target_queue=target_queue, thread_name='thread_{}'.format(str(_index + 1).zfill(2))))
@@ -64,3 +68,8 @@ def answer_thread_pool(target_queue, thread_num):
 
     for thread in thread_list:
         thread.join()
+
+    for thread in thread_list:
+        output = output + thread.output_list
+
+    return output

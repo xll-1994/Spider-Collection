@@ -8,6 +8,7 @@ import re
 from queue import Queue
 
 from util import WebRequest
+from util import SaveData
 from handler import ConfigHandler
 from handler import LogHandler
 from database import RedisClient
@@ -70,7 +71,18 @@ class AnswerSpider(object):
             answer_queue = Queue()
             for obj in answer_obj:
                 answer_queue.put(obj)
-            answer_thread_pool(target_queue=answer_queue, thread_num=self.conf.thread_num)
+            cnt = int(len(answer_obj) / 20) + 1
+            for i in range(cnt):
+                item_queue = Queue()
+                for j in range(20):
+                    try:
+                        val = answer_queue.get(block=False)
+                        item_queue.put(val)
+                    except:
+                        break
+                output = answer_thread_pool(target_queue=item_queue, thread_num=self.conf.thread_num)
+                SaveData(data=output, table_name='answer', unique_id='answer_id').run()
+                self.log.info("第{}份数据已保存".format(i + 1))
             self.log.info("已完成对 {total} 条回答的采集工作！".format(total=total))
 
     @staticmethod

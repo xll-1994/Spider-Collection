@@ -22,27 +22,30 @@ class SaveData(object):
         self.conf = ConfigHandler()
 
     def to_mysql(self):
-        mysql_client = MysqlClient()
-        mysql_client.save(self.data, table_name=self.table_name)
+        for item in self.data:
+            mysql_client = MysqlClient()
+            mysql_client.save(item, table_name=self.table_name)
 
     def to_mongo(self):
-        mongo_client = MongoDBClient()
-        db = mongo_client.db
-        db[self.table_name].update_one({self.unique_id: self.data[self.unique_id]}, {'$set': self.data}, upsert=True)
+        for item in self.data:
+            mongo_client = MongoDBClient()
+            db = mongo_client.db
+            db[self.table_name].update_one({self.unique_id: item[self.unique_id]}, {'$set': item}, upsert=True)
 
     def to_xlsx(self):
-        file_name = 'data/{}.xlsx'.format(self.table_name, self.table_name)
-        try:
-            wb = load_workbook(file_name)
-            ws = wb['Sheet']
-        except:
-            wb = Workbook()
-            ws = wb['Sheet']
-            my_keys = list(self.data.keys())
-            ws.append(my_keys)
-        my_values = list(self.data.values())
-        ws.append(my_values)
-        wb.save(file_name)
+        for item in self.data:
+            file_name = 'data/{}.xlsx'.format(self.table_name, self.table_name)
+            try:
+                wb = load_workbook(file_name)
+                ws = wb['Sheet']
+            except:
+                wb = Workbook()
+                ws = wb['Sheet']
+                my_keys = list(item.keys())
+                ws.append(my_keys)
+            my_values = list(item.values())
+            ws.append(my_values)
+            wb.save(file_name)
 
     def run(self):
         if self.conf.use_mysql == 1:
