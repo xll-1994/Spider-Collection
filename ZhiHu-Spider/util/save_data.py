@@ -33,19 +33,20 @@ class SaveData(object):
             db[self.table_name].update_one({self.unique_id: item[self.unique_id]}, {'$set': item}, upsert=True)
 
     def to_xlsx(self):
+        data_keys = self.data[0].keys()
+        file_name = 'data/{}.xlsx'.format(self.table_name, self.table_name)
+        try:
+            wb = load_workbook(file_name)
+            ws = wb['Sheet']
+        except:
+            wb = Workbook()
+            ws = wb['Sheet']
+            my_keys = list(data_keys)
+            ws.append(my_keys)
         for item in self.data:
-            file_name = 'data/{}.xlsx'.format(self.table_name, self.table_name)
-            try:
-                wb = load_workbook(file_name)
-                ws = wb['Sheet']
-            except:
-                wb = Workbook()
-                ws = wb['Sheet']
-                my_keys = list(item.keys())
-                ws.append(my_keys)
             my_values = list(item.values())
             ws.append(my_values)
-            wb.save(file_name)
+        wb.save(file_name)
 
     def run(self):
         if self.conf.use_mysql == 1:
