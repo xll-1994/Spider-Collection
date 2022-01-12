@@ -1,1 +1,2 @@
 from itemparser.answer_parser import AnswerParser
+from itemparser.article_parser import ArticleParser

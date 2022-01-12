@@ -4,21 +4,7 @@
 - [ ] 采集单个问题的基本信息
 - [ ] 采集单个问题的相关问题
 - [ ] 采集单个问题的回答者信息
-### 采集单个问题的回答信息
-#### 数据库建设
-|   数据库字段   |       含义       |
-| :------------: | :--------------: |
-|  question_id   | 问题ID |
-|   answer_id    | 答案ID |
-|    user_id     | 用户ID |
-| answer_content |     回答内容     |
-|  vote_up_num   |      点赞数      |
-|  comment_num   |      评论数      |
-|   edit_time    |     回答时间     |
-|  insert_time   |     采集时间     |
-#### 备注
-如果回答里面只有视频、图片，那么采集到的answer_content就是空的，如果答题者是匿名回答问题的，那么user_id就为0。
-![](screen_shot/img_1.png)
+- [x] 采集单篇文章的基本信息
 ### 支持的数据导出模式
 - [x] .xlsx文件（默认）
 - [x] mysql
@@ -84,10 +70,44 @@ PROXY_HOST = '127.0.0.1'
 PROXY_PORT = 5010
 # ---------- PROXY CONFIG ---------- #
 ```
-### 运行爬虫
-#### 采集单个问题的答案信息
-运行以下命令，并在提示框输入问题ID
+### 采集单个问题的回答信息
+#### 数据库建设
+|数据库字段|含义|
+| :------------: | :--------------: |
+|  question_id   | 问题ID |
+|   answer_id    | 答案ID |
+|    user_id     | 用户ID |
+| answer_content |     回答内容     |
+|  vote_up_num   |      点赞数      |
+|  comment_num   |      评论数      |
+|   edit_time    |     回答时间     |
+|  insert_time   |     采集时间     |
+#### 运行
+输入以下命令，并在提示框填入问题ID
 ```shell
 python main.py answer_spider
 ```
 ![](screen_shot/img.png)
+#### 备注
+如果回答里面只有视频、图片，那么采集到的answer_content就是空的，如果答题者是匿名回答问题的，那么user_id就是0。
+![](screen_shot/img_1.png)
+### 采集单篇文章的基本信息
+#### 数据库建设
+|数据库字段|含义|
+|:---:|:---:|
+|article_id|文章ID|
+|user_id|用户ID|
+|title|标题|
+|tag|标签|
+|content|内容|
+|vote_up_num|赞同数|
+|comment_num|评论数|
+|edit_time|编辑时间|
+|insert_time|采集时间|
+#### 运行
+输入以下命令，并在提示框填入文章ID
+```shell
+python main.py article_spider
+```
+
+![img.png](screen_shot/img_2.png)

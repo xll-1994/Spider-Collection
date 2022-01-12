@@ -10,7 +10,7 @@ from datetime import datetime
 from lxml import etree
 
 
-class AnswerParser(object):
+class AnswerParser:
 
     def get_detail(self, content):
         answer_detail = dict()

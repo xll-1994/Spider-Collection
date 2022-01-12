@@ -32,7 +32,7 @@ class AnswerSpider(object):
         self.offset_num = 0
         self.cookie = None
         self.conf = ConfigHandler()
-        self.log = LogHandler('question_api')
+        self.log = LogHandler('question_spider')
         if self.conf.use_redis == 1:
             self.db = RedisClient(host=self.conf.redis_host, port=self.conf.redis_port, db=self.conf.redis_db,
                                   password=self.conf.redis_password)
